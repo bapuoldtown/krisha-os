@@ -27,24 +27,45 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            target
-          key: ${{ runner.os }}-krisha-v5-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ runner.os }}-krisha-v6-${{ hashFiles('**/Cargo.toml') }}
 
       - name: 🖥️ Install QEMU
         run: |
           sudo apt-get update
           sudo apt-get install -y qemu-system-x86
 
+      - name: 🧹 Clean previous builds
+        run: |
+          rm -rf target/
+          rm -f krisha.img
+          echo "Cleaned old artifacts"
+
       - name: 🔨 Build Krisha (kernel + bootable disk image)
-        run: cargo run --package krisha-builder
+        run: cargo run --package krisha-builder --verbose
 
       - name: 📋 Verify build output
         shell: bash
         run: |
+          echo "=== Current directory ==="
+          pwd
+          ls -la
+          echo ""
           echo "=== Looking for disk image ==="
-          ls -la krisha.img || echo "krisha.img not found"
+          ls -la krisha.img || echo "krisha.img NOT FOUND in root"
+          echo ""
+          echo "=== Looking in target/ ==="
+          find target -name "*.img" -type f 2>/dev/null
+          find target -name "krisha-kernel*" -type f 2>/dev/null | head -10
+          echo ""
+          echo "=== File details ==="
+          if [ -f krisha.img ]; then
+            file krisha.img
+            ls -lh krisha.img
+            echo "First 16 bytes (hex):"
+            xxd krisha.img | head -2
+          fi
 
-      - name: 🚀 Boot Krisha in QEMU
+      - name: 🚀 Boot Krisha in QEMU (verbose)
         shell: bash
         run: |
           set +e
@@ -54,26 +75,43 @@ jobs:
           echo "════════════════════════════════════════"
           echo ""
 
+          if [ ! -f krisha.img ]; then
+            echo "❌ ERROR: krisha.img doesn't exist!"
+            echo "Build must have failed silently."
+            exit 1
+          fi
+
+          echo "Disk image size: $(ls -lh krisha.img | awk '{print $5}')"
+          echo ""
+
+          # Run QEMU with full diagnostics
           timeout 15s qemu-system-x86_64 \
             -drive format=raw,file=krisha.img \
             -display none \
             -debugcon stdio \
             -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
             -no-reboot \
+            -no-shutdown \
             -m 256M \
+            -d guest_errors \
             2>&1 | tee qemu-output.log
 
           EXIT_CODE=${PIPESTATUS[0]}
 
           echo ""
+          echo "════════════════════════════════════════"
           echo "QEMU exit code: $EXIT_CODE"
+          echo "════════════════════════════════════════"
+          echo ""
+          echo "=== Output file size ==="
+          ls -la qemu-output.log
           echo ""
           echo "=== Captured QEMU Output ==="
           cat qemu-output.log
           echo "=== End QEMU Output ==="
+          echo ""
 
           if grep -q "Krisha" qemu-output.log; then
-            echo ""
             echo "  ╔══════════════════════════════════════╗"
             echo "  ║   🦚 KRISHA OS BOOTED! 🦚            ║"
             echo "  ║   Day 1 of forever.                  ║"
@@ -83,6 +121,13 @@ jobs:
           elif [ "$EXIT_CODE" = "33" ]; then
             echo "✅ Exit code 33 = clean QEMU exit — kernel ran!"
             exit 0
+          elif [ "$EXIT_CODE" = "0" ]; then
+            echo "⚠️ Exit 0 + no output = kernel didn't run"
+            echo "   Likely causes:"
+            echo "   1. Disk image is empty/corrupt"
+            echo "   2. Bootloader didn't load kernel"
+            echo "   3. Kernel crashed before any output"
+            exit 1
           else
             echo "⚠️ Investigation needed. Exit: $EXIT_CODE"
             exit 1
