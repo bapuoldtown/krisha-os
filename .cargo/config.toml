@@ -4,9 +4,3 @@ target = "x86_64-krisha.json"
 [unstable]
 build-std-features = ["compiler-builtins-mem"]
 build-std = ["core", "compiler_builtins", "alloc"]
-target-applies-to-host = false
-host-config = true
-
-# NEW: Enable JSON target specs (required by modern Rust nightly)
-[target.'cfg(target_os = "none")']
-runner = "bootimage runner"
