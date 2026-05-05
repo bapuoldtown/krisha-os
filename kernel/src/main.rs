@@ -1,26 +1,15 @@
-// Krisha OS — Lesson 2: First Boot 🦚
-// Multiboot-compliant kernel that QEMU can boot directly.
+// Krisha OS — Kernel 🦚
 
 #![no_std]
 #![no_main]
 
 use core::panic::PanicInfo;
+use bootloader_api::{entry_point, BootInfo};
 
-// Multiboot v1 header — required for QEMU's -kernel flag
-// Magic: 0x1BADB002, Flags: 0, Checksum: -(magic + flags)
-#[link_section = ".multiboot"]
-#[used]
-static MULTIBOOT_HEADER: [u32; 3] = [
-    0x1BADB002,           // Magic number
-    0x00000000,           // Flags
-    0xE4524FFE,           // Checksum (-(magic + flags))
-];
+entry_point!(kernel_main);
 
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
-    // Print "Krisha OS" via QEMU's debug console (port 0xe9)
-    let msg = b"Krisha OS v0.1.0 - Intelligence, by grace. \xF0\x9F\xA6\x9A\n";
-    
+fn kernel_main(_boot_info: &'static mut BootInfo) -> ! {
+    let msg = b"Krisha OS v0.1.0 - Intelligence, by grace.\n";
     for &byte in msg {
         unsafe {
             core::arch::asm!(
@@ -31,8 +20,7 @@ pub extern "C" fn _start() -> ! {
             );
         }
     }
-    
-    // Signal success and exit QEMU via isa-debug-exit device
+
     unsafe {
         core::arch::asm!(
             "out dx, al",
@@ -41,7 +29,7 @@ pub extern "C" fn _start() -> ! {
             options(nomem, nostack, preserves_flags)
         );
     }
-    
+
     loop {
         unsafe { core::arch::asm!("hlt", options(nomem, nostack)); }
     }
