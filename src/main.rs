@@ -1,24 +1,27 @@
-// Krisha OS — Lesson 1: Freestanding Binary
-//
-// 🦚 Intelligence, by grace.
-// This is the very first version — minimal, almost nothing.
-// Just proves we can build Rust code without an OS.
+// Krisha OS — Lesson 2: The First Boot 🦚
 
-#![no_std]      // No standard library
-#![no_main]     // No normal main() entry
+#![no_std]
+#![no_main]
 
 use core::panic::PanicInfo;
 
-/// Called on panic. Since we have no OS, just loop.
-#[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+static GREETING: &[u8] = b"Krisha OS v0.1.0 - Intelligence, by grace. We are booting a simple micro kernel via QEMU enulator in x86 architecture. This is the first step to build a simple OS from scratch. Welcome to the world of OS development!";
+
+#[no_mangle]
+pub extern "C" fn _start() -> ! {
+    let vga_buffer = 0xb8000 as *mut u8;
+
+    for (i, &byte) in GREETING.iter().enumerate() {
+        unsafe {
+            *vga_buffer.offset(i as isize * 2) = byte;
+            *vga_buffer.offset(i as isize * 2 + 1) = 0x0e;
+        }
+    }
+
     loop {}
 }
 
-/// Our entry point — replaces main().
-/// The linker looks for a function called `_start`.
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
-    // Krisha is alive! (But silent for now.)
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }

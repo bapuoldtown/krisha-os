@@ -1,0 +1,57 @@
+name: Lesson 2 — First Boot 🦚
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  boot-krisha:
+    name: Build & Boot Krisha in QEMU
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rust-src, llvm-tools-preview
+
+      - name: 💾 Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-lesson2-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: 🖥️ Install QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86
+
+      - name: 📦 Install bootimage
+        run: cargo install bootimage --locked
+
+      - name: 🔨 Build Krisha kernel
+        run: cargo build --verbose
+
+      - name: 💿 Create bootable disk image
+        run: cargo bootimage
+
+      - name: 🚀 Boot Krisha in QEMU
+        run: |
+          echo "🦚 BOOTING KRISHA OS 🦚"
+          timeout 5s qemu-system-x86_64 \
+            -drive format=raw,file=target/x86_64-krisha/debug/bootimage-krisha-kernel.bin \
+            -display none \
+            -serial stdio \
+            -no-reboot \
+            > qemu-output.log 2>&1 || true
+          echo "=== QEMU output ==="
+          cat qemu-output.log
+          echo "✅ Krisha booted!"
