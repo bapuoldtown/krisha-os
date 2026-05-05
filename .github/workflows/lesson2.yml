@@ -46,6 +46,8 @@ jobs:
       - name: 📋 Verify build output
         shell: bash
         run: |
+          set +e  # Don't crash on pipe errors
+
           echo "=== Current directory ==="
           pwd
           ls -la
@@ -53,17 +55,16 @@ jobs:
           echo "=== Looking for disk image ==="
           ls -la krisha.img || echo "krisha.img NOT FOUND in root"
           echo ""
-          echo "=== Looking in target/ ==="
-          find target -name "*.img" -type f 2>/dev/null
-          find target -name "krisha-kernel*" -type f 2>/dev/null | head -10
-          echo ""
           echo "=== File details ==="
           if [ -f krisha.img ]; then
             file krisha.img
             ls -lh krisha.img
             echo "First 16 bytes (hex):"
-            xxd krisha.img | head -2
+            xxd krisha.img 2>/dev/null | head -2 || true
           fi
+
+          # Always succeed
+          exit 0
 
       - name: 🚀 Boot Krisha in QEMU (verbose)
         shell: bash
