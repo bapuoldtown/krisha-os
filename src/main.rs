@@ -1,23 +1,35 @@
-// Krisha OS — Lesson 2: The First Boot 🦚
+// Krisha OS — Lesson 2 (Simplified): Bare metal kernel
+// 🦚 Intelligence, by grace.
 
 #![no_std]
 #![no_main]
 
 use core::panic::PanicInfo;
 
-static GREETING: &[u8] = b"Krisha OS v0.1.0 - Intelligence, by grace. We are booting a simple micro kernel via QEMU enulator in x86 architecture. This is the first step to build a simple OS from scratch. Welcome to the world of OS development!";
-
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let vga_buffer = 0xb8000 as *mut u8;
-
-    for (i, &byte) in GREETING.iter().enumerate() {
+    // Write to QEMU's debug exit port to signal "we're alive!"
+    // QEMU port 0xe9 prints to stdout when -debugcon is enabled.
+    let msg = b"Krisha OS v0.1.0 - Intelligence, by grace.\n";
+    for &byte in msg {
         unsafe {
-            *vga_buffer.offset(i as isize * 2) = byte;
-            *vga_buffer.offset(i as isize * 2 + 1) = 0x0e;
+            core::arch::asm!(
+                "out dx, al",
+                in("dx") 0xe9_u16,
+                in("al") byte,
+            );
         }
     }
-
+    
+    // Exit QEMU cleanly with success code
+    unsafe {
+        core::arch::asm!(
+            "out dx, al",
+            in("dx") 0xf4_u16,
+            in("al") 0x10_u8,  // Success exit code
+        );
+    }
+    
     loop {}
 }
 
