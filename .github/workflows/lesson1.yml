@@ -1,0 +1,35 @@
+name: Lesson 1 — Freestanding Binary
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:  # Lets you trigger manually
+
+jobs:
+  build:
+    name: Build freestanding kernel
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rust-src, llvm-tools-preview
+
+      - name: 🔨 Try to build (will show errors first)
+        run: cargo build --verbose
+        continue-on-error: true
+
+      - name: 📝 Show what we learned
+        run: |
+          echo "🦚 Lesson 1: Freestanding Binary"
+          echo "================================"
+          echo "We removed std (no OS available)"
+          echo "We provided our own panic handler"
+          echo "We defined _start as entry point"
+          echo ""
+          echo "Next: Lesson 2 — make it actually boot!"
