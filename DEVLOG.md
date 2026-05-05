@@ -64,4 +64,34 @@ Krisha finally booted in cloud QEMU and printed:
 ### Mood
 Proud. Tired. Determined. 🦚
 
+## Day 3 — Lesson 3 COMPLETE 🎉
+*[Today's date]*
+
+### Won the println! battle
+
+Got `println!` macro working in the kernel after a wild detour:
+- First try: classic VGA buffer at 0xb8000 → kernel triple-faulted
+- Diagnosis: bootloader 0.11 doesn't map legacy VGA address
+- Solution: pivoted to port 0xe9 with same Lesson 3 architecture
+- Result: spin lock + lazy_static + fmt::Write + custom macros all work
+
+### Key insight
+Phil-Opp's classic tutorial assumes legacy bootloader behavior.
+Modern bootloader 0.11 uses framebuffers (UEFI-style).
+The CONCEPTS (volatile, spin, lazy_static, macros) all still apply —
+just plugged into a different output channel.
+
+### What surprised me
+- How sneakily a triple-fault hangs the kernel (no error, just silence)
+- That github.dev can have sync issues (verify push actually landed!)
+- How much defensive debug_print() helps debugging
+
+### What's next
+- Lesson 4: CPU exception handlers (so we CAN use VGA later!)
+- Lesson 5: Hardware interrupts + keyboard
+- Then: framebuffer rendering for graphical text output
+
+### Mood
+Triumphant. 🦚 Krisha can speak in formatted text now!
+
 ---
