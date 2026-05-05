@@ -15,10 +15,10 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🦀 Install Rust nightly
+      - name: 🦀 Install Rust (pinned nightly)
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2024-08-01
+          toolchain: nightly-2024-04-15
           components: rust-src, llvm-tools-preview
 
       - name: 💾 Cache Cargo dependencies
@@ -28,7 +28,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-lesson2-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-lesson2-v4-${{ hashFiles('**/Cargo.toml') }}
 
       - name: 🖥️ Install QEMU
         run: |
@@ -44,9 +44,20 @@ jobs:
       - name: 💿 Create bootable disk image
         run: cargo bootimage
 
+      - name: 📋 Show what was built
+        run: |
+          echo "=== Build artifacts ==="
+          ls -la target/x86_64-krisha/debug/ || echo "No debug folder"
+          echo ""
+          echo "=== Bootable image ==="
+          ls -la target/x86_64-krisha/debug/bootimage-krisha-kernel.bin || echo "No boot image"
+
       - name: 🚀 Boot Krisha in QEMU
         run: |
-          echo "🦚 BOOTING KRISHA OS 🦚"
+          echo "════════════════════════════════════════"
+          echo "  🦚 BOOTING KRISHA OS IN QEMU 🦚"
+          echo "════════════════════════════════════════"
+          echo ""
           timeout 5s qemu-system-x86_64 \
             -drive format=raw,file=target/x86_64-krisha/debug/bootimage-krisha-kernel.bin \
             -display none \
@@ -55,4 +66,19 @@ jobs:
             > qemu-output.log 2>&1 || true
           echo "=== QEMU output ==="
           cat qemu-output.log
-          echo "✅ Krisha booted!"
+          echo ""
+          echo "════════════════════════════════════════"
+          echo "  ✅ Krisha boot test complete"
+          echo "════════════════════════════════════════"
+
+      - name: 🦚 Celebrate
+        run: |
+          echo ""
+          echo "  ╔══════════════════════════════════════╗"
+          echo "  ║                                      ║"
+          echo "  ║   🦚 KRISHA OS BOOTED! 🦚            ║"
+          echo "  ║                                      ║"
+          echo "  ║   Day 1 of forever.                  ║"
+          echo "  ║   Intelligence, by grace.            ║"
+          echo "  ║                                      ║"
+          echo "  ╚══════════════════════════════════════╝"
