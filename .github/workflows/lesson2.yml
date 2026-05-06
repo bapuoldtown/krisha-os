@@ -1,8 +1,8 @@
-name: Lesson 2 — First Boot 🦚
+name: Lesson 2 — Boot with date module of the kernel shell command
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, "feature/**" ]
   pull_request:
   workflow_dispatch:
 
