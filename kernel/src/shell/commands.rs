@@ -1,49 +1,91 @@
 // kernel/src/shell/commands.rs
 //
-// Krisha Shell — built-in commands 🦚
+// Krisha Shell — built-in commands 🦚🕉️
+//
+// Each command supports both English AND Sanskrit/Hindi aliases.
+// E.g., "date" and "kaal" do the same thing.
 
 use crate::println;
 use crate::time;
+use crate::shell::art;
 
+/// Main command dispatcher — matches command string to function.
 pub fn run(cmd: &str) {
     let trimmed = cmd.trim();
 
-    if trimmed == "hello" {
-        cmd_hello();
-    } else if trimmed == "info" {
+    // ─────────────── Greetings ───────────────
+    if trimmed == "hello" || trimmed == "namaste" {
+        cmd_namaste();
+    }
+    // ─────────────── System Info ─────────────
+    else if trimmed == "info" || trimmed == "vivran" {
         cmd_info();
-    } else if trimmed == "date" {
+    }
+    else if trimmed == "krisha" {
+        art::print_krisha_logo();
+    }
+    // ─────────────── Time & Calendar ─────────
+    else if trimmed == "date" || trimmed == "kaal" {
         cmd_date();
-    } else if trimmed == "uptime" {
+    }
+    else if trimmed == "cal" || trimmed == "panjika" {
+        cmd_cal();
+    }
+    else if trimmed == "panchang" {
+        cmd_panchang();
+    }
+    else if trimmed == "uptime" {
         cmd_uptime();
-    } else if trimmed.starts_with("color") {
+    }
+    // ─────────────── Wisdom ──────────────────
+    else if trimmed == "fortune" || trimmed == "shloka" {
+        cmd_fortune();
+    }
+    // ─────────────── Misc ────────────────────
+    else if trimmed.starts_with("color") {
         cmd_color(trimmed);
-    } else if trimmed.starts_with("echo") {
+    }
+    else if trimmed.starts_with("echo") {
         cmd_echo(trimmed);
-    } else if trimmed.starts_with("ls") {
+    }
+    else if trimmed.starts_with("ls") {
         cmd_ls(trimmed);
-    } else if trimmed.starts_with("cat") {
+    }
+    else if trimmed.starts_with("cat") {
         cmd_cat(trimmed);
-    } else if trimmed.starts_with("mkdir") {
+    }
+    else if trimmed.starts_with("mkdir") {
         cmd_mkdir(trimmed);
-    } else if trimmed == "mem" {
+    }
+    else if trimmed == "mem" || trimmed == "smriti" {
         cmd_mem();
-    } else if trimmed.starts_with("ai") {
+    }
+    else if trimmed.starts_with("ai") || trimmed == "gyaan" {
         cmd_ai(trimmed);
-    } else if trimmed == "help" {
+    }
+    else if trimmed == "help" || trimmed == "sahayata" {
         cmd_help();
-    } else if trimmed == "shutdown" {
+    }
+    else if trimmed == "shutdown" || trimmed == "alvida" {
         cmd_shutdown();
-    } else {
+    }
+    else {
         println!("krisha: command not found: {}", trimmed);
-        println!("        type 'help' for available commands");
+        println!("        type 'help' (or 'sahayata') for available commands");
     }
 }
 
-fn cmd_hello() {
-    println!("Namaste, brother! 🙏");
-    println!("Krisha greets you with grace.");
+// ──────────────────────────────────────────────────────────
+// Greetings
+// ──────────────────────────────────────────────────────────
+
+fn cmd_namaste() {
+    art::print_namaste();
 }
+
+// ──────────────────────────────────────────────────────────
+// System Info
+// ──────────────────────────────────────────────────────────
 
 fn cmd_info() {
     println!("Krisha OS v0.1.0 - Intelligence, by grace.");
@@ -52,13 +94,32 @@ fn cmd_info() {
     println!("  Kernel:       Rust no_std");
     println!("  Bootloader:   bootloader 0.11");
     println!("  Status:       Day 4 - shell scaffolding");
+    println!("  Languages:    English + Sanskrit aliases");
 }
 
-/// Beautiful date command with Hindu calendar (Panchang)!
+// ──────────────────────────────────────────────────────────
+// Time & Calendar
+// ──────────────────────────────────────────────────────────
+
+/// Date with Hindu calendar info (alias: kaal)
 fn cmd_date() {
     println!("[rtc] reading from CMOS chip...");
     let now = time::now();
     time::calendar::print_kaal(&now);
+}
+
+/// Month calendar with Hindu overlay (alias: panjika)
+fn cmd_cal() {
+    println!("[rtc] generating calendar...");
+    let now = time::now();
+    time::calendar::print_cal(&now);
+}
+
+/// Full Hindu almanac (panchang)
+fn cmd_panchang() {
+    println!("[rtc] reading panchang...");
+    let now = time::now();
+    time::calendar::print_panchang(&now);
 }
 
 fn cmd_uptime() {
@@ -66,6 +127,19 @@ fn cmd_uptime() {
     println!("[tsc] CPU cycles since reset: {}", ticks);
     println!("       (precise wall-clock uptime needs Lesson 5 timer)");
 }
+
+// ──────────────────────────────────────────────────────────
+// Wisdom
+// ──────────────────────────────────────────────────────────
+
+/// Random Sanskrit shloka (alias: shloka)
+fn cmd_fortune() {
+    time::fortune::print_fortune();
+}
+
+// ──────────────────────────────────────────────────────────
+// Misc commands (mostly stubs for now)
+// ──────────────────────────────────────────────────────────
 
 fn cmd_color(cmd: &str) {
     let arg = cmd.strip_prefix("color").unwrap_or("").trim();
@@ -128,7 +202,7 @@ fn cmd_mkdir(cmd: &str) {
 }
 
 fn cmd_mem() {
-    println!("Memory status:");
+    println!("Memory status (Smriti):");
     println!("  Heap:     0 KB / 0 KB used (heap not yet allocated)");
     println!("  Stack:    ~32 KB available");
     println!("  Total:    256 MB (from BootInfo)");
@@ -139,7 +213,7 @@ fn cmd_ai(cmd: &str) {
     let arg = cmd.strip_prefix("ai").unwrap_or("").trim();
 
     if arg == "status" || arg.is_empty() {
-        println!("AI Subsystem Status:");
+        println!("AI Subsystem Status (Gyaan):");
         println!("  State:        not loaded");
         println!("  Models:       0 loaded");
         println!("  Vector store: not initialized");
@@ -157,23 +231,36 @@ fn cmd_ai(cmd: &str) {
 
 fn cmd_help() {
     println!("Krisha Shell - available commands:");
+    println!("  (English / Sanskrit alias)");
     println!();
-    println!("  hello              Namaste from Krisha");
-    println!("  info               Show system info");
-    println!("  date               Show kaal (Indian + Gregorian)");
-    println!("  uptime             Show CPU ticks since boot");
-    println!("  echo <text>        Print text");
-    println!("  color <name>       Change output color [stub]");
-    println!("  ls [path]          List directory [stub]");
-    println!("  cat <file>         Display file [stub]");
-    println!("  mkdir <path>       Create directory [stub]");
-    println!("  mem                Show memory usage");
-    println!("  ai <subcommand>    AI subsystem (status, models, infer)");
-    println!("  shutdown           Exit Krisha");
-    println!("  help               This message");
+    println!("  Greetings:");
+    println!("    hello / namaste     Greet Krisha");
     println!();
-    println!("Real commands: hello, info, date, uptime, echo, help");
-    println!("Stub commands: color, ls, cat, mkdir, mem, ai");
+    println!("  System:");
+    println!("    info / vivran       Show system info");
+    println!("    krisha              Show Krisha OS logo");
+    println!("    mem / smriti        Show memory usage");
+    println!();
+    println!("  Time & Calendar:");
+    println!("    date / kaal         Show date/time with kaal info");
+    println!("    cal / panjika       Show month calendar");
+    println!("    panchang            Show full Hindu almanac");
+    println!("    uptime              Show CPU ticks since boot");
+    println!();
+    println!("  Wisdom:");
+    println!("    fortune / shloka    Random Sanskrit shloka");
+    println!();
+    println!("  Misc:");
+    println!("    echo <text>         Print text");
+    println!("    color <name>        Change output color [stub]");
+    println!("    ls [path]           List directory [stub]");
+    println!("    cat <file>          Display file [stub]");
+    println!("    mkdir <path>        Create directory [stub]");
+    println!("    ai <subcmd> / gyaan AI subsystem (status, models)");
+    println!();
+    println!("  Exit:");
+    println!("    shutdown / alvida   Exit Krisha");
+    println!("    help / sahayata     This message");
 }
 
 fn cmd_shutdown() {

@@ -6,6 +6,7 @@ use crate::println;
 
 pub mod commands;
 pub mod parser;
+pub mod art;        // ← NEW: ASCII art module
 
 pub const PROMPT: &str = "krisha> ";
 
@@ -18,15 +19,28 @@ pub fn run_demo() {
     println!("+----------------------------------------------+");
     println!();
 
+    // Greeting commands
     demo_command("hello");
+    demo_command("namaste");
+
+    // System info
     demo_command("info");
+    demo_command("krisha");
+
+    // Time & calendar
     demo_command("date");
+    demo_command("kaal");
+    demo_command("cal");
+    demo_command("panjika");
+    demo_command("panchang");
     demo_command("uptime");
-    demo_command("color yellow");
+
+    // Wisdom
+    demo_command("fortune");
+
+    // Misc
     demo_command("echo Krisha lives");
     demo_command("ls /vfs");
-    demo_command("cat /vfs/greeting.txt");
-    demo_command("mkdir /vfs/myproject");
     demo_command("mem");
     demo_command("ai status");
     demo_command("help");

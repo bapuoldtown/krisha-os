@@ -4,6 +4,7 @@
 // Reads the Real-Time Clock (RTC) from CMOS hardware
 
 pub mod calendar;
+pub mod fortune;
 
 const RTC_SECONDS: u8 = 0x00;
 const RTC_MINUTES: u8 = 0x02;
